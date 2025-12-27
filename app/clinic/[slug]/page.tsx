@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { clinics } from "@/lib/data";
 import { getRecentReports, hasRecentReport } from "@/lib/store";
@@ -39,12 +39,10 @@ export default function ClinicPage({
 
   // Derive status from reports at render time (no state storage)
   // Status is always calculated fresh from reports, treating "unknown" as valid
-  // Use refreshKey to force recalculation when reports are updated
-  const reports = useMemo(() => getRecentReports(clinic.id), [clinic.id, refreshKey]);
-  const statusInfo = useMemo(() => calculateStatus(reports), [reports]);
-
-  // Recalculate hasRecentReport when refreshKey changes
-  const userHasRecentReport = useMemo(() => hasRecentReport(clinic.id), [clinic.id, refreshKey]);
+  // refreshKey forces re-render to recalculate from localStorage
+  const reports = getRecentReports(clinic.id);
+  const statusInfo = calculateStatus(reports);
+  const userHasRecentReport = hasRecentReport(clinic.id);
 
   const handleReportClick = () => {
     if (userHasRecentReport) {
@@ -56,7 +54,10 @@ export default function ClinicPage({
   const handleReportComplete = () => {
     setShowReportModal(false);
     // Force re-render to recalculate status from updated reports
-    setRefreshKey((prev) => prev + 1);
+    // Use setTimeout to ensure localStorage write is complete
+    setTimeout(() => {
+      setRefreshKey((prev) => prev + 1);
+    }, 100);
   };
 
   return (
