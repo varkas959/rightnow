@@ -15,6 +15,7 @@ export default function ClinicPage({
   const { slug } = params;
   const router = useRouter();
   const [showReportModal, setShowReportModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const clinic = clinics.find((c) => c.slug === slug);
 
@@ -50,7 +51,8 @@ export default function ClinicPage({
 
   const handleReportComplete = () => {
     setShowReportModal(false);
-    // Status will be recalculated on next render from updated reports
+    // Force re-render to recalculate status from updated reports
+    setRefreshKey((prev) => prev + 1);
   };
 
   return (

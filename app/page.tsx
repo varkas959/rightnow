@@ -27,7 +27,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white px-4 pt-6 pb-8 relative">
-      <div className="text-2xl font-bold text-blue-600 tracking-tight mb-3">
+      <div className="text-2xl font-bold text-blue-600 tracking-tight mb-3 text-center">
         statusnow
       </div>
       <div className="max-w-md mx-auto">
