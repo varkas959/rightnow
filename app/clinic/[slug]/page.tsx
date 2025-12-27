@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { clinics } from "@/lib/data";
 import { getRecentReports, hasRecentReport } from "@/lib/store";
@@ -39,11 +39,15 @@ export default function ClinicPage({
 
   // Derive status from reports at render time (no state storage)
   // Status is always calculated fresh from reports, treating "unknown" as valid
-  const reports = getRecentReports(clinic.id);
-  const statusInfo = calculateStatus(reports);
+  // Use refreshKey to force recalculation when reports are updated
+  const reports = useMemo(() => getRecentReports(clinic.id), [clinic.id, refreshKey]);
+  const statusInfo = useMemo(() => calculateStatus(reports), [reports]);
+
+  // Recalculate hasRecentReport when refreshKey changes
+  const userHasRecentReport = useMemo(() => hasRecentReport(clinic.id), [clinic.id, refreshKey]);
 
   const handleReportClick = () => {
-    if (hasRecentReport(clinic.id)) {
+    if (userHasRecentReport) {
       return;
     }
     setShowReportModal(true);
@@ -106,18 +110,18 @@ export default function ClinicPage({
         <div className="mb-8">
           <button
             onClick={handleReportClick}
-            disabled={hasRecentReport(clinic.id)}
+            disabled={userHasRecentReport}
             className={`w-full py-4 rounded-lg font-medium ${
-              hasRecentReport(clinic.id)
+              userHasRecentReport
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                 : "bg-gray-900 text-white hover:bg-gray-700 active:bg-gray-800"
             }`}
           >
-            {hasRecentReport(clinic.id)
+            {userHasRecentReport
               ? "You've already shared an update recently. Thanks!"
               : "Are you currently here?"}
           </button>
-          {!hasRecentReport(clinic.id) && (
+          {!userHasRecentReport && (
             <p className="text-center text-xs text-gray-500 mt-2">
               Takes 3 seconds · No login needed
             </p>
