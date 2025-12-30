@@ -142,10 +142,13 @@ export default function ClinicPage({
                 : "bg-gray-900 text-white hover:bg-gray-700 active:bg-gray-800"
             }`}
           >
-            {userHasRecentReport
-              ? "You've already shared an update recently. Thanks!"
-              : "Are you currently here?"}
+            Are you currently here?
           </button>
+          {userHasRecentReport && (
+            <p className="text-center text-xs text-gray-400 mt-2 opacity-60">
+              You shared an update recently (updates allowed once per hour)
+            </p>
+          )}
           {!userHasRecentReport && (
             <p className="text-center text-xs text-gray-500 mt-2">
               Takes 3 seconds · No login needed

@@ -17,6 +17,11 @@ function getConfidenceText(reports: Report[]): string {
   const newestReport = Math.max(...reports.map((r) => r.timestamp));
   const minutesAgo = Math.floor((now - newestReport) / (60 * 1000));
   
+  // Never show "0 minutes" - use "just now" for < 1 minute
+  if (minutesAgo < 1) {
+    return "Based on reports from just now";
+  }
+  
   return `Based on reports in the last ${minutesAgo} minute${minutesAgo !== 1 ? "s" : ""}`;
 }
 
@@ -87,7 +92,7 @@ export function calculateStatus(reports: Report[]): StatusInfo {
   if (red / total >= 0.5) {
     return {
       status: "heavy-waiting",
-      description: "Multiple visitors report long waiting",
+      description: "Long waiting reported by recent visitors",
       confidence: getConfidenceText(recentReports),
     };
   }
@@ -95,7 +100,7 @@ export function calculateStatus(reports: Report[]): StatusInfo {
   if (yellow / total >= 0.5) {
     return {
       status: "some-waiting",
-      description: "A few visitors are currently waiting",
+      description: "Moderate waiting reported by recent visitors",
       confidence: getConfidenceText(recentReports),
     };
   }
@@ -103,7 +108,7 @@ export function calculateStatus(reports: Report[]): StatusInfo {
   if (green / total >= 0.5) {
     return {
       status: "smooth",
-      description: "Visitors report little or no waiting right now",
+      description: "Little or no waiting reported by recent visitors",
       confidence: getConfidenceText(recentReports),
     };
   }
@@ -111,7 +116,7 @@ export function calculateStatus(reports: Report[]): StatusInfo {
   // No majority (mixed signals) → safe fallback to "some waiting"
   return {
     status: "some-waiting",
-    description: "A few visitors are currently waiting",
+    description: "Moderate waiting reported by recent visitors",
     confidence: getConfidenceText(recentReports),
   };
 }
@@ -152,7 +157,8 @@ export function getStatusColors(status: Status): { bg: string; text: string } {
     case "smooth":
       return { bg: "#ECFDF3", text: "#027A48" };
     case "some-waiting":
-      return { bg: "#FFFAEB", text: "#B54708" };
+      // Reduced saturation by ~20%: from #FFFAEB to warmer, less alert-like
+      return { bg: "#FDF8F0", text: "#B54708" };
     case "heavy-waiting":
       return { bg: "#FEF3F2", text: "#B42318" };
     case "unknown":
