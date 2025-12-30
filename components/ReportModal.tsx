@@ -122,7 +122,7 @@ export default function ReportModal({
         {step === "confirmation" && (
           <div className="text-center py-6">
             <p className="text-lg text-gray-900">
-              Thanks — this helps others plan better.
+              Thanks — one more recent update helps unlock live status.
             </p>
           </div>
         )}

@@ -21,107 +21,98 @@ function getConfidenceText(reports: Report[]): string {
 }
 
 /**
- * Isolates reports by time-of-day window (morning vs evening)
- * Morning: 6 AM - 2 PM
- * Evening: 2 PM - 10 PM
- * Night: 10 PM - 6 AM (next day)
+ * Map frontend waitDuration to backend wait_bucket
  */
-function getTimeWindow(date: Date): "morning" | "evening" | "night" {
-  const hour = date.getHours();
-  if (hour >= 6 && hour < 14) return "morning";
-  if (hour >= 14 && hour < 22) return "evening";
-  return "night";
+function getWaitBucket(waitDuration: string): "<15" | "15-30" | "30+" | null {
+  if (waitDuration === "Just arrived / <15 min") return "<15";
+  if (waitDuration === "15–30 min") return "15-30";
+  if (waitDuration === "30+ min") return "30+";
+  return null;
 }
 
-function filterByTimeWindow(reports: Report[]): Report[] {
-  if (reports.length === 0) return [];
-  
-  const now = new Date();
-  const currentWindow = getTimeWindow(now);
-  
-  return reports.filter((report) => {
-    const reportDate = new Date(report.timestamp);
-    const reportWindow = getTimeWindow(reportDate);
-    return reportWindow === currentWindow;
-  });
-}
-
+/**
+ * Calculate status using majority rule based on wait_bucket values
+ * Separates CONFIDENCE (number of reports) from SIGNAL (what reports say)
+ */
 export function calculateStatus(reports: Report[]): StatusInfo {
   const now = Date.now();
   const ninetyMinutes = 90 * 60 * 1000;
   
-  // Strict freshness: only reports within 90 minutes
+  // STEP 1: Filter fresh reports (last 90 minutes only)
   const recentReports = reports.filter((r) => now - r.timestamp < ninetyMinutes);
   
-  // Time-of-day isolation: only reports from current time window
-  const windowedReports = filterByTimeWindow(recentReports);
-  
-  // If no fresh reports in current time window, show unknown state
-  if (windowedReports.length === 0) {
-    return {
-      status: "unknown",
-      description: "Status updates appear when people are visiting",
-      confidence: "",
-    };
-  }
-  
-  // Status changes require MULTIPLE reports (never a single report)
-  if (windowedReports.length === 1) {
-    return {
-      status: "unknown",
-      description: "Status updates appear when people are visiting",
-      confidence: "",
-    };
-  }
-  
-  const waitingReports = windowedReports.filter((r) => r.isWaiting);
-  
-  // If no waiting reports, check for smooth status
-  if (waitingReports.length === 0) {
-    const shortWaitReports = windowedReports.filter(
-      (r) => r.waitDuration === "Just arrived / <15 min"
-    );
-    
-    // Reports indicating "Just arrived / <15 min" may result in 🟢 Smooth if multiple reports
-    if (shortWaitReports.length >= 2) {
+  // If less than 2 reports, return UNKNOWN
+  if (recentReports.length < 2) {
+    if (recentReports.length === 0) {
       return {
-        status: "smooth",
-        description: "Visitors report little or no waiting right now",
-        confidence: getConfidenceText(windowedReports),
+        status: "unknown",
+        description: "Status appears when people are visiting",
+        confidence: "",
       };
     }
-    
-    // Multiple reports but no clear waiting signal → unknown
+    // Exactly 1 report
     return {
       status: "unknown",
-      description: "Status updates appear when people are visiting",
+      description: "Status becomes visible when more people share",
       confidence: "",
     };
   }
   
-  // 3+ recent reports with waiting → 🔴 Heavy waiting
-  if (waitingReports.length >= 3) {
+  // STEP 2: Aggregate signal (count wait_bucket values)
+  let green = 0; // "<15"
+  let yellow = 0; // "15-30"
+  let red = 0; // "30+"
+  
+  for (const report of recentReports) {
+    if (!report.waitDuration) continue;
+    const bucket = getWaitBucket(report.waitDuration);
+    if (bucket === "<15") green++;
+    else if (bucket === "15-30") yellow++;
+    else if (bucket === "30+") red++;
+  }
+  
+  const total = green + yellow + red;
+  
+  // STEP 3: Derive status using majority rule
+  if (total === 0) {
+    // No valid wait buckets (shouldn't happen, but safe fallback)
+    return {
+      status: "unknown",
+      description: "Status appears when people are visiting",
+      confidence: "",
+    };
+  }
+  
+  // Majority rule: >= 50% threshold
+  if (red / total >= 0.5) {
     return {
       status: "heavy-waiting",
       description: "Multiple visitors report long waiting",
-      confidence: getConfidenceText(windowedReports),
+      confidence: getConfidenceText(recentReports),
     };
   }
   
-  // 2 waiting reports → 🟡 Some waiting
-  if (waitingReports.length === 2) {
+  if (yellow / total >= 0.5) {
     return {
       status: "some-waiting",
       description: "A few visitors are currently waiting",
-      confidence: getConfidenceText(windowedReports),
+      confidence: getConfidenceText(recentReports),
     };
   }
   
-  // 1 waiting report (but multiple total) → unknown (need more signals)
+  if (green / total >= 0.5) {
+    return {
+      status: "smooth",
+      description: "Visitors report little or no waiting right now",
+      confidence: getConfidenceText(recentReports),
+    };
+  }
+  
+  // No majority (mixed signals) → safe fallback to "some waiting"
   return {
-    status: "unknown",
-    description: "Status updates appear when people are visiting",
-    confidence: "",
+    status: "some-waiting",
+    description: "A few visitors are currently waiting",
+    confidence: getConfidenceText(recentReports),
   };
 }
 
@@ -138,7 +129,7 @@ export function getStatusEmoji(status: Status): string {
   }
 }
 
-export function getStatusText(status: Status): string {
+export function getStatusText(status: Status, reportCount: number = 0): string {
   switch (status) {
     case "smooth":
       return "Moving smoothly";
@@ -147,6 +138,11 @@ export function getStatusText(status: Status): string {
     case "heavy-waiting":
       return "Heavy waiting reported";
     case "unknown":
+      if (reportCount === 0) {
+        return "No one has shared an update recently";
+      } else if (reportCount === 1) {
+        return "Only one recent update so far";
+      }
       return "No one has shared an update recently";
   }
 }

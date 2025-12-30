@@ -17,11 +17,12 @@ export default function ClinicPage({
   const [showReportModal, setShowReportModal] = useState(false);
   const [statusInfo, setStatusInfo] = useState<StatusInfo>({
     status: "unknown",
-    description: "Status updates appear when people are visiting",
+    description: "Status appears when people are visiting",
     confidence: "",
   });
   const [isLoading, setIsLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [reportCount, setReportCount] = useState(0);
 
   const clinic = clinics.find((c) => c.slug === slug);
 
@@ -36,6 +37,7 @@ export default function ClinicPage({
         console.log(`Fetched ${reports.length} reports for clinic ${clinic.id}`);
         const calculatedStatus = calculateStatus(reports);
         setStatusInfo(calculatedStatus);
+        setReportCount(reports.length);
       } catch (error) {
         console.error("Error fetching reports:", error);
       } finally {
@@ -114,7 +116,7 @@ export default function ClinicPage({
               className="text-xl font-semibold mb-3"
               style={{ color: getStatusColors(statusInfo.status).text }}
             >
-              {getStatusText(statusInfo.status)}
+              {getStatusText(statusInfo.status, reportCount)}
             </h2>
             <p 
               className="text-sm mb-4"
