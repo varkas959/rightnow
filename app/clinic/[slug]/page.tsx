@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { clinics } from "@/lib/data";
 import { getRecentReports, hasRecentReport } from "@/lib/store";
-import { calculateStatus, getStatusEmoji, getStatusText, getStatusColors } from "@/lib/status";
+import { calculateStatus, getStatusEmoji, getStatusText, getStatusColors, StatusInfo } from "@/lib/status";
 import ReportModal from "@/components/ReportModal";
 
 export default function ClinicPage({
@@ -15,9 +15,36 @@ export default function ClinicPage({
   const { slug } = params;
   const router = useRouter();
   const [showReportModal, setShowReportModal] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [statusInfo, setStatusInfo] = useState<StatusInfo>({
+    status: "unknown",
+    description: "Status updates appear when people are visiting",
+    confidence: "",
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const clinic = clinics.find((c) => c.slug === slug);
+
+  // Fetch reports from backend on load and when refreshTrigger changes
+  useEffect(() => {
+    if (!clinic) return;
+
+    const fetchReports = async () => {
+      setIsLoading(true);
+      try {
+        const reports = await getRecentReports(clinic.id);
+        console.log(`Fetched ${reports.length} reports for clinic ${clinic.id}`);
+        const calculatedStatus = calculateStatus(reports);
+        setStatusInfo(calculatedStatus);
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, [clinic, refreshTrigger]);
 
   if (!clinic) {
     return (
@@ -37,11 +64,6 @@ export default function ClinicPage({
     );
   }
 
-  // Derive status from reports at render time (no state storage)
-  // Status is always calculated fresh from reports, treating "unknown" as valid
-  // refreshKey forces re-render to recalculate from localStorage
-  const reports = getRecentReports(clinic.id);
-  const statusInfo = calculateStatus(reports);
   const userHasRecentReport = hasRecentReport(clinic.id);
 
   const handleReportClick = () => {
@@ -51,13 +73,13 @@ export default function ClinicPage({
     setShowReportModal(true);
   };
 
-  const handleReportComplete = () => {
+  const handleReportComplete = async () => {
     setShowReportModal(false);
-    // Force re-render to recalculate status from updated reports
-    // Use setTimeout to ensure localStorage write is complete
+    // Refetch reports from backend after submission
+    // Small delay to ensure backend has processed the report
     setTimeout(() => {
-      setRefreshKey((prev) => prev + 1);
-    }, 100);
+      setRefreshTrigger((prev) => prev + 1);
+    }, 300);
   };
 
   return (

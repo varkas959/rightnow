@@ -33,8 +33,8 @@ export default function ReportModal({
    * Called ONLY after Step 2 completion (duration selection).
    * This is the single point of report creation.
    */
-  const handleDurationClick = (duration: "Just arrived / <15 min" | "15–30 min" | "30+ min") => {
-    const success = addReport({
+  const handleDurationClick = async (duration: "Just arrived / <15 min" | "15–30 min" | "30+ min") => {
+    const success = await addReport({
       clinicId,
       isWaiting: true,
       waitDuration: duration,

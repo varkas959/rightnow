@@ -13,6 +13,14 @@ export interface Report {
   deviceId: string;
 }
 
+// Backend report format
+export interface BackendReport {
+  id: string;
+  clinic_id: string;
+  wait_bucket: "<15" | "15-30" | "30+";
+  created_at: number;
+}
+
 export const clinics: Clinic[] = [
   {
     id: "1",

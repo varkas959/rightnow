@@ -1,9 +1,9 @@
 "use client";
 
-import { Report } from "./data";
+import { Report, BackendReport } from "./data";
 
-const STORAGE_KEY = "rightnow_reports";
 const DEVICE_ID_KEY = "rightnow_device_id";
+const LAST_REPORT_KEY_PREFIX = "rightnow_last_report_";
 
 function getDeviceId(): string {
   if (typeof window === "undefined") return "";
@@ -16,23 +16,77 @@ function getDeviceId(): string {
   return deviceId;
 }
 
-function getReports(): Report[] {
-  if (typeof window === "undefined") return [];
-  
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return [];
-  
+// Convert backend report format to frontend format
+function convertBackendReport(backendReport: BackendReport): Report {
+  const waitDurationMap: Record<string, "Just arrived / <15 min" | "15–30 min" | "30+ min"> = {
+    "<15": "Just arrived / <15 min",
+    "15-30": "15–30 min",
+    "30+": "30+ min",
+  };
+
+  return {
+    clinicId: backendReport.clinic_id,
+    timestamp: backendReport.created_at,
+    isWaiting: true, // All backend reports are waiting reports (Step 2 completion)
+    waitDuration: waitDurationMap[backendReport.wait_bucket],
+    deviceId: "", // Not needed for frontend display
+  };
+}
+
+// Convert frontend format to backend format
+function convertToBackendFormat(
+  clinicId: string,
+  waitDuration: "Just arrived / <15 min" | "15–30 min" | "30+ min"
+): { clinic_id: string; wait_bucket: "<15" | "15-30" | "30+" } {
+  const waitBucketMap: Record<string, "<15" | "15-30" | "30+"> = {
+    "Just arrived / <15 min": "<15",
+    "15–30 min": "15-30",
+    "30+ min": "30+",
+  };
+
+  return {
+    clinic_id: clinicId,
+    wait_bucket: waitBucketMap[waitDuration],
+  };
+}
+
+/**
+ * Fetch reports from backend API
+ */
+export async function getRecentReports(clinicId: string): Promise<Report[]> {
   try {
-    return JSON.parse(stored);
-  } catch {
+    const response = await fetch(`/api/reports?clinic_id=${encodeURIComponent(clinicId)}`);
+    if (!response.ok) {
+      console.error("Failed to fetch reports:", response.status, response.statusText);
+      return [];
+    }
+    
+    const data = await response.json();
+    const convertedReports = data.reports.map(convertBackendReport);
+    console.log(`Fetched ${convertedReports.length} reports for clinic ${clinicId}`);
+    return convertedReports;
+  } catch (error) {
+    console.error("Error fetching reports:", error);
     return [];
   }
 }
 
-function saveReports(reports: Report[]): void {
-  if (typeof window === "undefined") return;
+/**
+ * Check if user has reported recently (rate limiting using localStorage)
+ */
+export function hasRecentReport(clinicId: string): boolean {
+  if (typeof window === "undefined") return false;
   
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+  const lastReportKey = `${LAST_REPORT_KEY_PREFIX}${clinicId}`;
+  const lastReportTime = localStorage.getItem(lastReportKey);
+  
+  if (!lastReportTime) return false;
+  
+  const now = Date.now();
+  const sixtyMinutes = 60 * 60 * 1000;
+  const timeSinceLastReport = now - parseInt(lastReportTime, 10);
+  
+  return timeSinceLastReport < sixtyMinutes;
 }
 
 /**
@@ -42,55 +96,50 @@ function saveReports(reports: Report[]): void {
  * Reports can ONLY be created after Step 2 completion (duration selection).
  * No other UI interaction may create or modify reports.
  */
-export function addReport(report: Omit<Report, "deviceId" | "timestamp">): boolean {
-  const deviceId = getDeviceId();
-  const reports = getReports();
-  const now = Date.now();
-  
-  // Check if user already reported for this clinic in the last 60 minutes
-  const recentReport = reports.find(
-    (r) =>
-      r.clinicId === report.clinicId &&
-      r.deviceId === deviceId &&
-      now - r.timestamp < 60 * 60 * 1000
-  );
-  
-  if (recentReport) {
+export async function addReport(
+  report: Omit<Report, "deviceId" | "timestamp">
+): Promise<boolean> {
+  // Rate limiting check using localStorage
+  if (hasRecentReport(report.clinicId)) {
+    console.log("Rate limited: already reported recently");
     return false; // Already reported recently
   }
-  
-  const newReport: Report = {
-    ...report,
-    deviceId,
-    timestamp: now,
-  };
-  
-  reports.push(newReport);
-  saveReports(reports);
-  return true;
-}
 
-export function getRecentReports(clinicId: string): Report[] {
-  const reports = getReports();
-  const now = Date.now();
-  const ninetyMinutes = 90 * 60 * 1000;
-  
-  return reports.filter(
-    (r) => r.clinicId === clinicId && now - r.timestamp < ninetyMinutes
-  );
-}
+  if (!report.waitDuration) {
+    console.log("Missing wait duration");
+    return false; // Must have wait duration (Step 2 completion)
+  }
 
-export function hasRecentReport(clinicId: string): boolean {
-  const deviceId = getDeviceId();
-  const reports = getReports();
-  const now = Date.now();
-  const sixtyMinutes = 60 * 60 * 1000;
-  
-  return reports.some(
-    (r) =>
-      r.clinicId === clinicId &&
-      r.deviceId === deviceId &&
-      now - r.timestamp < sixtyMinutes
-  );
-}
+  try {
+    const backendFormat = convertToBackendFormat(report.clinicId, report.waitDuration);
+    console.log("Submitting report:", backendFormat);
+    
+    const response = await fetch("/api/reports", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(backendFormat),
+    });
 
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("Failed to create report:", response.status, errorData);
+      return false;
+    }
+
+    const result = await response.json();
+    console.log("Report created successfully:", result);
+
+    // Update localStorage for rate limiting
+    if (typeof window !== "undefined") {
+      const lastReportKey = `${LAST_REPORT_KEY_PREFIX}${report.clinicId}`;
+      localStorage.setItem(lastReportKey, Date.now().toString());
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error creating report:", error);
+    return false;
+  }
+}
