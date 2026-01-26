@@ -184,18 +184,18 @@ export default function HomePage() {
                       <div className="flex flex-wrap gap-4 text-xs text-gray-600 mb-3">
                         {waitTimeRange !== "—" && (
                           <div className="flex items-center gap-1">
-                            <span>🕐</span>
+                            <span>⏱️</span>
                             <span>{waitTimeRange}</span>
                           </div>
                         )}
                         {lastUpdatedText && (
                           <div className="flex items-center gap-1">
                             <span>🕐</span>
-                            <span>{lastUpdatedText}</span>
+                            <span>Updated: {lastUpdatedText}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-1">
-                          <span>📊</span>
+                          <span>👥</span>
                           <span>{reports.length} report{reports.length !== 1 ? "s" : ""}</span>
                         </div>
                       </div>
