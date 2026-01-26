@@ -94,16 +94,11 @@ export default function HomePage() {
         </div>
 
         {/* Statistics */}
-        <div className="flex justify-center gap-6 mb-6 text-sm">
-          {clinicsUpdatedInLastHour > 0 && (
-            <div className="text-blue-600">
-              {clinicsUpdatedInLastHour} updated in last hour
-            </div>
-          )}
-          <div className="text-blue-600">
-            {clinics.length} hospitals tracked
+        {clinicsUpdatedInLastHour > 0 && (
+          <div className="text-center mb-6 text-sm text-blue-600">
+            {clinicsUpdatedInLastHour} hospitals updated in last hour • {clinics.length} tracked
           </div>
-        </div>
+        )}
 
         {/* Search Bar */}
         <div className="mb-6">
@@ -157,10 +152,19 @@ export default function HomePage() {
 
             const hasData = reports.length >= 2;
 
+            // Get status emoji for hospital name
+            const statusEmoji = getStatusEmoji(statusInfo.status);
+            // Get border color based on status
+            const borderColor = statusInfo.status === "smooth" ? "#027A48" 
+              : statusInfo.status === "some-waiting" ? "#B54708"
+              : statusInfo.status === "heavy-waiting" ? "#B42318"
+              : "#667085";
+
             return (
               <div
                 key={clinic.id}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden"
+                style={{ borderLeftWidth: "4px", borderLeftColor: borderColor }}
                 onClick={() => handleClinicClick(clinic.slug)}
               >
                 {isLoading ? (
@@ -171,7 +175,10 @@ export default function HomePage() {
                 ) : hasData ? (
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-900 mb-1">{clinic.name}</div>
+                      <div className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                        <span>{statusEmoji}</span>
+                        <span>{clinic.name}</span>
+                      </div>
                       <div className="text-sm text-gray-600 mb-3">{clinic.area}</div>
                       
                       <div className="flex flex-wrap gap-4 text-xs text-gray-600 mb-3">
@@ -195,11 +202,11 @@ export default function HomePage() {
 
                       <div className="flex items-center gap-2 flex-wrap">
                         {confidenceInfo.isReliable ? (
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                             {confidenceInfo.level}
                           </span>
                         ) : (
-                          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium flex items-center gap-1">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 border border-yellow-200">
                             <span>⚠️</span>
                             <span>{confidenceInfo.level}</span>
                           </span>
@@ -209,10 +216,11 @@ export default function HomePage() {
                     
                     <div className="ml-4">
                       <div
-                        className="px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap"
+                        className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border"
                         style={{
                           backgroundColor: colors.bg,
                           color: colors.text,
+                          borderColor: colors.text + "40", // Add transparency to border color
                         }}
                       >
                         {crowdLabel}
@@ -222,7 +230,10 @@ export default function HomePage() {
                 ) : (
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-900 mb-1">{clinic.name}</div>
+                      <div className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                        <span>{statusEmoji}</span>
+                        <span>{clinic.name}</span>
+                      </div>
                       <div className="text-sm text-gray-600 mb-3">{clinic.area}</div>
                       <div className="text-sm text-gray-500 mb-3">No updates yet</div>
                       <button
@@ -234,11 +245,6 @@ export default function HomePage() {
                       >
                         Be the first to update
                       </button>
-                    </div>
-                    <div className="ml-4">
-                      <div className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 whitespace-nowrap">
-                        No Recent Updates
-                      </div>
                     </div>
                   </div>
                 )}
