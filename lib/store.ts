@@ -72,6 +72,100 @@ export async function getRecentReports(clinicId: string): Promise<Report[]> {
 }
 
 /**
+ * Fetch reports for all clinics in parallel
+ */
+export async function getAllClinicsReports(clinicIds: string[]): Promise<Map<string, Report[]>> {
+  const reportsMap = new Map<string, Report[]>();
+  
+  try {
+    const promises = clinicIds.map(async (clinicId) => {
+      const reports = await getRecentReports(clinicId);
+      return { clinicId, reports };
+    });
+    
+    const results = await Promise.all(promises);
+    results.forEach(({ clinicId, reports }) => {
+      reportsMap.set(clinicId, reports);
+    });
+  } catch (error) {
+    console.error("Error fetching all clinics reports:", error);
+  }
+  
+  return reportsMap;
+}
+
+/**
+ * Calculate count of clinics with reports updated in last hour
+ */
+export function getClinicsUpdatedInLastHour(reportsMap: Map<string, Report[]>): number {
+  const now = Date.now();
+  const oneHour = 60 * 60 * 1000;
+  let count = 0;
+  
+  for (const reports of reportsMap.values()) {
+    const hasRecentReport = reports.some((r) => now - r.timestamp < oneHour);
+    if (hasRecentReport) {
+      count++;
+    }
+  }
+  
+  return count;
+}
+
+/**
+ * Format timestamp to "X mins ago", "1 hour ago", etc.
+ */
+export function formatTimeAgo(timestamp: number): string {
+  const now = Date.now();
+  const diffMs = now - timestamp;
+  const diffMins = Math.floor(diffMs / (60 * 1000));
+  const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+  
+  if (diffMins < 1) {
+    return "just now";
+  } else if (diffMins < 60) {
+    return `${diffMins} min${diffMins !== 1 ? "s" : ""} ago`;
+  } else if (diffHours === 1) {
+    return "1 hour ago";
+  } else if (diffHours < 24) {
+    return `${diffHours} hours ago`;
+  } else {
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
+  }
+}
+
+/**
+ * Get confidence level based on report count and recency
+ */
+export function getConfidenceLevel(reportCount: number, minutesAgo: number): {
+  level: "High confidence" | "Medium confidence" | "Low confidence" | "Not reliable";
+  isReliable: boolean;
+} {
+  if (reportCount === 0) {
+    return { level: "Not reliable", isReliable: false };
+  }
+  
+  if (reportCount === 1) {
+    return { level: "Not reliable", isReliable: false };
+  }
+  
+  if (minutesAgo > 60) {
+    return { level: "Not reliable", isReliable: false };
+  }
+  
+  if (reportCount >= 5 && minutesAgo <= 30) {
+    return { level: "High confidence", isReliable: true };
+  }
+  
+  if (reportCount >= 3 && minutesAgo <= 45) {
+    return { level: "Medium confidence", isReliable: true };
+  }
+  
+  return { level: "Low confidence", isReliable: true };
+}
+
+/**
  * Check if user has reported recently (rate limiting using localStorage)
  */
 export function hasRecentReport(clinicId: string): boolean {

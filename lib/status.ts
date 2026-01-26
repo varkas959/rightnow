@@ -166,3 +166,69 @@ export function getStatusColors(status: Status): { bg: string; text: string } {
   }
 }
 
+/**
+ * Map status to crowd status label for display
+ */
+export function getCrowdStatusLabel(status: Status): string {
+  switch (status) {
+    case "smooth":
+      return "Not Crowded";
+    case "some-waiting":
+      return "Moderate";
+    case "heavy-waiting":
+      return "Very Crowded";
+    case "unknown":
+      return "No Recent Updates";
+  }
+}
+
+/**
+ * Get wait time range from reports (e.g., "< 15 min", "15-30 min", "45+ min")
+ */
+export function getWaitTimeRange(reports: Report[]): string {
+  if (reports.length === 0) {
+    return "—";
+  }
+  
+  const now = Date.now();
+  const ninetyMinutes = 90 * 60 * 1000;
+  const recentReports = reports.filter((r) => now - r.timestamp < ninetyMinutes);
+  
+  if (recentReports.length === 0) {
+    return "—";
+  }
+  
+  // Get wait buckets from recent reports
+  const buckets = recentReports
+    .map((r) => {
+      if (!r.waitDuration) return null;
+      if (r.waitDuration === "Just arrived / <15 min") return "<15";
+      if (r.waitDuration === "15–30 min") return "15-30";
+      if (r.waitDuration === "30+ min") return "30+";
+      return null;
+    })
+    .filter((b): b is "<15" | "15-30" | "30+" => b !== null);
+  
+  if (buckets.length === 0) {
+    return "—";
+  }
+  
+  // Count occurrences
+  const counts = {
+    "<15": buckets.filter((b) => b === "<15").length,
+    "15-30": buckets.filter((b) => b === "15-30").length,
+    "30+": buckets.filter((b) => b === "30+").length,
+  };
+  
+  // Find most common bucket
+  const maxCount = Math.max(counts["<15"], counts["15-30"], counts["30+"]);
+  if (maxCount === 0) return "—";
+  
+  if (counts["30+"] === maxCount) {
+    return "45+ min";
+  } else if (counts["15-30"] === maxCount) {
+    return "20-30 min";
+  } else {
+    return "< 15 min";
+  }
+}
