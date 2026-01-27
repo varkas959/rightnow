@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Report } from "@/lib/data";
 import { clinics } from "@/lib/data";
 import { getRecentReports, hasRecentReport, formatTimeAgo } from "@/lib/store";
-import { calculateStatus, getStatusEmoji, getStatusText, getStatusColors, StatusInfo, type Status } from "@/lib/status";
+import { calculateStatus, getStatusEmoji, getStatusText, getStatusColors, StatusInfo } from "@/lib/status";
 import ReportModal from "@/components/ReportModal";
 
 export default function ClinicPage({
@@ -70,14 +70,6 @@ export default function ClinicPage({
   }
 
   const userHasRecentReport = hasRecentReport(clinic.id);
-
-  // Map a single report's wait duration to a status bucket for display
-  const getStatusFromReport = (report: Report): Status => {
-    if (report.waitDuration === "Just arrived / <15 min") return "smooth";
-    if (report.waitDuration === "15–30 min") return "some-waiting";
-    if (report.waitDuration === "30+ min") return "heavy-waiting";
-    return "unknown";
-  };
 
   const sortedReports = useMemo(
     () => [...recentReports].sort((a, b) => b.timestamp - a.timestamp),
@@ -200,16 +192,13 @@ export default function ClinicPage({
           ) : (
             <div className="space-y-2">
               {sortedReports.map((report) => {
-                const status = getStatusFromReport(report);
-                const colors = getStatusColors(status);
-                const emoji = getStatusEmoji(status);
                 const timeAgo = formatTimeAgo(report.timestamp);
 
                 let waitLabel = "";
                 if (report.waitDuration === "Just arrived / <15 min") {
                   waitLabel = "< 15 min";
                 } else if (report.waitDuration === "15–30 min") {
-                  waitLabel = "15–30 min";
+                  waitLabel = "15-30 min";
                 } else if (report.waitDuration === "30+ min") {
                   waitLabel = "30+ min";
                 }
@@ -217,25 +206,13 @@ export default function ClinicPage({
                 return (
                   <div
                     key={report.timestamp + (report.waitDuration || "")}
-                    className="rounded-lg px-3 py-3 flex items-center justify-between border border-gray-100 text-sm"
-                    style={{ backgroundColor: colors.bg, color: colors.text }}
+                    className="rounded-lg px-3 py-3 flex items-center justify-between border border-gray-200 bg-gray-50 text-sm"
                   >
-                    <div className="flex items-center gap-2">
-                      <span>{emoji}</span>
-                      <span className="font-medium">
-                        {status === "smooth"
-                          ? "Not Crowded"
-                          : status === "some-waiting"
-                          ? "Moderate"
-                          : status === "heavy-waiting"
-                          ? "Very Crowded"
-                          : "No recent status"}
-                      </span>
-                      {waitLabel && (
-                        <span className="text-xs opacity-80">· {waitLabel} wait</span>
-                      )}
+                    <div className="flex items-center gap-1 text-gray-700">
+                      <span>Reported:</span>
+                      <span className="font-medium">{waitLabel} wait</span>
                     </div>
-                    <div className="text-xs opacity-80">{timeAgo}</div>
+                    <div className="text-xs text-gray-500">{timeAgo}</div>
                   </div>
                 );
               })}
