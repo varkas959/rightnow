@@ -71,7 +71,7 @@ export default function ReportModal({
             <div className="space-y-3">
               <button
                 onClick={() => handleWaitingClick(true)}
-                className="w-full py-4 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-700 active:bg-gray-800"
+                className="w-full py-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800"
               >
                 Yes, waiting
               </button>
@@ -99,19 +99,19 @@ export default function ReportModal({
             <div className="space-y-3">
               <button
                 onClick={() => handleDurationClick("Just arrived / <15 min")}
-                className="w-full py-4 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 text-base"
+                className="w-full py-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 text-base"
               >
                 Just arrived / &lt;15 min
               </button>
               <button
                 onClick={() => handleDurationClick("15–30 min")}
-                className="w-full py-4 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 text-base"
+                className="w-full py-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 text-base"
               >
                 15–30 min
               </button>
               <button
                 onClick={() => handleDurationClick("30+ min")}
-                className="w-full py-4 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 text-base"
+                className="w-full py-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 text-base"
               >
                 30+ min
               </button>
