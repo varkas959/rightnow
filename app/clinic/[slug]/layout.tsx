@@ -20,8 +20,8 @@ export function generateMetadata({
   }
 
   return {
-    title: `Is ${clinic.name} running on time today? | Whitefield Bangalore`,
-    description: `Check if ${clinic.name} in ${clinic.area} is running smoothly or has waiting right now. Live visit status based on recent visitor reports.`,
+    title: `${clinic.name} - Live Wait Times | StatusNow`,
+    description: `Check real-time wait times and crowd status at ${clinic.name} in ${clinic.area}. Live status is based on recent visitor reports.`,
   };
 }
 

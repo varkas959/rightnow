@@ -18,6 +18,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [clinicStatuses, setClinicStatuses] = useState<Map<string, ClinicStatus>>(new Map());
   const [isLoadingAll, setIsLoadingAll] = useState(true);
+  const [showClinicPicker, setShowClinicPicker] = useState(false);
   const router = useRouter();
 
   // Fetch reports for all clinics on mount
@@ -71,10 +72,13 @@ export default function HomePage() {
   };
 
   const handleQuickUpdate = () => {
-    // Navigate to first clinic or show clinic selector
-    if (clinics.length > 0) {
-      router.push(`/clinic/${clinics[0].slug}`);
-    }
+    // Open a simple picker instead of jumping to a single clinic
+    setShowClinicPicker(true);
+  };
+
+  const handleClinicSelectFromPicker = (slug: string) => {
+    setShowClinicPicker(false);
+    router.push(`/clinic/${slug}`);
   };
 
   return (
@@ -269,6 +273,46 @@ export default function HomePage() {
             Quick Update
           </button>
         </div>
+
+        {/* Simple clinic picker for Quick Update */}
+        {showClinicPicker && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-40 z-40 flex items-end sm:items-center sm:justify-center"
+            onClick={() => setShowClinicPicker(false)}
+          >
+            <div
+              className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-4 max-h-[70vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-base font-semibold text-gray-900 mb-2">
+                Which hospital are you at?
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">
+                Choose a hospital to share a quick update. No login needed.
+              </p>
+              <div className="space-y-2">
+                {clinics.map((clinic) => (
+                  <button
+                    key={clinic.id}
+                    onClick={() => handleClinicSelectFromPicker(clinic.slug)}
+                    className="w-full text-left px-3 py-3 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  >
+                    <div className="text-sm font-medium text-gray-900">
+                      {clinic.name}
+                    </div>
+                    <div className="text-xs text-gray-500">{clinic.area}</div>
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowClinicPicker(false)}
+                className="mt-4 w-full py-2.5 rounded-lg text-sm text-gray-600 border border-gray-200 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
