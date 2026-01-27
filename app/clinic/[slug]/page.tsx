@@ -129,19 +129,23 @@ export default function ClinicPage({
             >
               {getStatusEmoji(statusInfo.status)}
             </div>
-            {sortedReports.length === 0 && statusInfo.status === "unknown" ? (
+            {statusInfo.status === "unknown" ? (
               <>
                 <h2
                   className="text-xl font-semibold mb-2 text-gray-900"
                 >
-                  No recent updates
+                  {sortedReports.length === 0 ? "No recent updates" : getStatusText(statusInfo.status, reportCount)}
                 </h2>
                 <p className="text-sm text-gray-700 mb-2">
-                  Visiting this clinic? Share the current wait time and help others plan their visit.
+                  {sortedReports.length === 0 
+                    ? "Visiting this clinic? Share the current wait time and help others plan their visit."
+                    : statusInfo.description}
                 </p>
-                <p className="text-xs text-gray-500">
-                  Takes 3 seconds • No login needed • Anonymous
-                </p>
+                {sortedReports.length === 0 && (
+                  <p className="text-xs text-gray-500">
+                    Takes 3 seconds • No login needed • Anonymous
+                  </p>
+                )}
               </>
             ) : (
               <>

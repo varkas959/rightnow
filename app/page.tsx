@@ -21,7 +21,7 @@ export default function HomePage() {
   const [showClinicPicker, setShowClinicPicker] = useState(false);
   const router = useRouter();
 
-  // Fetch reports for all clinics on mount
+  // Fetch reports for all clinics on mount and when page becomes visible
   useEffect(() => {
     const fetchAllReports = async () => {
       setIsLoadingAll(true);
@@ -44,6 +44,19 @@ export default function HomePage() {
     };
 
     fetchAllReports();
+
+    // Refresh when page becomes visible again (user navigates back)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchAllReports();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   // Filter clinics based on search
