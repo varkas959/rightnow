@@ -20,8 +20,8 @@ export function generateMetadata({
   }
 
   return {
-    title: `${clinic.name} - Live Wait Times | StatusNow`,
-    description: `Check real-time wait times and crowd status at ${clinic.name} in ${clinic.area}. Live status is based on recent visitor reports.`,
+    title: `How crowded is ${clinic.name}? | StatusNow`,
+    description: `Check real-time crowd and wait time status at ${clinic.name} in ${clinic.area}. Live status is based on recent visitor reports.`,
   };
 }
 

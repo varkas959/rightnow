@@ -111,10 +111,10 @@ export default function ClinicPage({
         </button>
 
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-            Is {clinic.name} running on time right now?
+          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-1">
+            How crowded is {clinic.name}?
           </h1>
-          <p className="text-gray-600">{clinic.area}</p>
+          <p className="text-sm text-gray-600">{clinic.area}</p>
         </div>
 
         {/* Current status */}
@@ -124,27 +124,45 @@ export default function ClinicPage({
             style={{ backgroundColor: getStatusColors(statusInfo.status).bg }}
           >
             <div
-              className="text-4xl mb-3"
+              className="text-5xl md:text-6xl mb-3"
               style={{ color: getStatusColors(statusInfo.status).text }}
             >
               {getStatusEmoji(statusInfo.status)}
             </div>
-            <h2
-              className="text-xl font-semibold mb-1"
-              style={{ color: getStatusColors(statusInfo.status).text }}
-            >
-              {getStatusText(statusInfo.status, reportCount)}
-            </h2>
-            <p
-              className="text-sm mb-2"
-              style={{ color: getStatusColors(statusInfo.status).text }}
-            >
-              {statusInfo.description}
-            </p>
-            {statusInfo.confidence && (
-              <p className="text-xs text-gray-700 mt-2">
-                {statusInfo.confidence}
-              </p>
+            {sortedReports.length === 0 && statusInfo.status === "unknown" ? (
+              <>
+                <h2
+                  className="text-xl font-semibold mb-2 text-gray-900"
+                >
+                  No recent updates
+                </h2>
+                <p className="text-sm text-gray-700 mb-2">
+                  Visiting this clinic? Share the current wait time and help others plan their visit.
+                </p>
+                <p className="text-xs text-gray-500">
+                  Takes 3 seconds • No login needed • Anonymous
+                </p>
+              </>
+            ) : (
+              <>
+                <h2
+                  className="text-xl font-semibold mb-1"
+                  style={{ color: getStatusColors(statusInfo.status).text }}
+                >
+                  {getStatusText(statusInfo.status, reportCount)}
+                </h2>
+                <p
+                  className="text-sm mb-2"
+                  style={{ color: getStatusColors(statusInfo.status).text }}
+                >
+                  {statusInfo.description}
+                </p>
+                {statusInfo.confidence && (
+                  <p className="text-xs text-gray-700 mt-2">
+                    {statusInfo.confidence}
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -160,7 +178,7 @@ export default function ClinicPage({
                 : "bg-gray-900 text-white hover:bg-gray-700 active:bg-gray-800"
             }`}
           >
-            Are you currently here?
+            Are you here now? Update status
           </button>
           {userHasRecentReport && (
             <p className="text-center text-xs text-gray-400 mt-2 opacity-60">
@@ -186,7 +204,7 @@ export default function ClinicPage({
                 No updates yet
               </p>
               <p className="text-xs text-gray-500 mb-4">
-                Be the first to share the current waiting experience for others.
+                This clinic needs you. Be the first to share the wait time so others know when to visit.
               </p>
               <button
                 onClick={handleReportClick}
@@ -197,7 +215,7 @@ export default function ClinicPage({
                     : "bg-blue-600 text-white hover:bg-blue-700"
                 }`}
               >
-                Share status
+                Are you here now? Update status
               </button>
             </div>
           ) : (
@@ -252,12 +270,14 @@ export default function ClinicPage({
             Typical patterns
           </h2>
           <p className="text-xs text-gray-500">
-            Typical crowd patterns for this hospital will appear here once more
-            people share their recent waiting experience.
+            Crowd patterns will appear here once we have enough reports (need
+            20+ updates to show trends). Help build this data by sharing when
+            you visit.
           </p>
         </div>
 
         <p className="mt-6 text-center text-xs text-gray-500">
+          <span className="mr-1">ℹ️</span>
           This reflects current waiting experience, not clinic quality or
           appointment booking.
         </p>

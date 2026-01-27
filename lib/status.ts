@@ -46,19 +46,19 @@ export function calculateStatus(reports: Report[]): StatusInfo {
   // STEP 1: Filter fresh reports (last 90 minutes only)
   const recentReports = reports.filter((r) => now - r.timestamp < ninetyMinutes);
   
-  // If less than 2 reports, return UNKNOWN
+  // If less than 2 reports, return UNKNOWN with action-oriented copy
   if (recentReports.length < 2) {
     if (recentReports.length === 0) {
       return {
         status: "unknown",
-        description: "Status appears when people are visiting",
+        description: "Share your current wait to unlock live status for others",
         confidence: "",
       };
     }
     // Exactly 1 report
     return {
       status: "unknown",
-      description: "Status becomes visible when more people share",
+      description: "Status becomes clearer when more people share their wait time",
       confidence: "",
     };
   }
@@ -83,7 +83,7 @@ export function calculateStatus(reports: Report[]): StatusInfo {
     // No valid wait buckets (shouldn't happen, but safe fallback)
     return {
       status: "unknown",
-      description: "Status appears when people are visiting",
+      description: "Share your current wait to unlock live status for others",
       confidence: "",
     };
   }
