@@ -167,33 +167,8 @@ export default function ClinicPage({
           </div>
         </div>
 
-        {/* Are you here? */}
-        <div className="mb-8">
-          <button
-            onClick={handleReportClick}
-            disabled={userHasRecentReport}
-            className={`w-full py-4 rounded-lg font-medium ${
-              userHasRecentReport
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-gray-900 text-white hover:bg-gray-700 active:bg-gray-800"
-            }`}
-          >
-            Are you here now? Update status
-          </button>
-          {userHasRecentReport && (
-            <p className="text-center text-xs text-gray-400 mt-2 opacity-60">
-              You shared an update recently (updates allowed once per hour)
-            </p>
-          )}
-          {!userHasRecentReport && (
-            <p className="text-center text-xs text-gray-500 mt-2">
-              Takes 3 seconds · No login needed
-            </p>
-          )}
-        </div>
-
         {/* Recent updates or empty state */}
-        <div className="mb-8">
+        <div className="mb-8 mt-6">
           <h2 className="text-sm font-semibold text-gray-900 mb-3">
             Recent updates
           </h2>
