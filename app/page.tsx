@@ -165,8 +165,6 @@ export default function HomePage() {
             const colors = getStatusColors(statusInfo.status);
             const crowdLabel = getCrowdStatusLabel(statusInfo.status);
 
-            const hasData = reports.length >= 2;
-
             // Get status emoji for hospital name
             const statusEmoji = getStatusEmoji(statusInfo.status);
             // Get border color based on status
@@ -174,6 +172,11 @@ export default function HomePage() {
               : statusInfo.status === "some-waiting" ? "#B54708"
               : statusInfo.status === "heavy-waiting" ? "#B42318"
               : "#667085";
+
+            // Determine display state: 0 reports, 1 report, or 2+ reports
+            const hasNoReports = reports.length === 0;
+            const hasOneReport = reports.length === 1;
+            const hasEnoughData = reports.length >= 2;
 
             return (
               <div
@@ -187,7 +190,7 @@ export default function HomePage() {
                     <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
                     <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                   </div>
-                ) : hasData ? (
+                ) : hasEnoughData ? (
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
@@ -235,10 +238,43 @@ export default function HomePage() {
                         style={{
                           backgroundColor: colors.bg,
                           color: colors.text,
-                          borderColor: colors.text + "40", // Add transparency to border color
+                          borderColor: colors.text + "40",
                         }}
                       >
                         {crowdLabel}
+                      </div>
+                    </div>
+                  </div>
+                ) : hasOneReport ? (
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                        <span>{statusEmoji}</span>
+                        <span>{clinic.name}</span>
+                      </div>
+                      <div className="text-sm text-gray-600 mb-2">{clinic.area}</div>
+                      
+                      <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-2">
+                        {waitTimeRange !== "—" && (
+                          <div className="flex items-center gap-1">
+                            <span>⏱️</span>
+                            <span>{waitTimeRange}</span>
+                          </div>
+                        )}
+                        {lastUpdatedText && (
+                          <div className="flex items-center gap-1">
+                            <span>🕐</span>
+                            <span>{lastUpdatedText}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1">
+                          <span>👥</span>
+                          <span>1 update</span>
+                        </div>
+                      </div>
+                      
+                      <div className="text-xs text-gray-500">
+                        Need 1 more update to show status
                       </div>
                     </div>
                   </div>
