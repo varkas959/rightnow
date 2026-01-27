@@ -21,10 +21,9 @@ export default function HomePage() {
   const [showClinicPicker, setShowClinicPicker] = useState(false);
   const router = useRouter();
 
-  // Fetch reports for all clinics on mount and when page becomes visible
+  // Fetch reports for all clinics on mount and when page regains focus
   useEffect(() => {
     const fetchAllReports = async () => {
-      setIsLoadingAll(true);
       const clinicIds = clinics.map((c) => c.id);
       const reportsMap = await getAllClinicsReports(clinicIds);
       
@@ -43,19 +42,18 @@ export default function HomePage() {
       setIsLoadingAll(false);
     };
 
+    // Initial fetch
     fetchAllReports();
 
-    // Refresh when page becomes visible again (user navigates back)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        fetchAllReports();
-      }
+    // Refresh when window regains focus (user clicks back, switches tabs, etc.)
+    const handleFocus = () => {
+      fetchAllReports();
     };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
     };
   }, []);
 

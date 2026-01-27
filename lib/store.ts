@@ -55,7 +55,10 @@ function convertToBackendFormat(
  */
 export async function getRecentReports(clinicId: string): Promise<Report[]> {
   try {
-    const response = await fetch(`/api/reports?clinic_id=${encodeURIComponent(clinicId)}`);
+    // Add cache-busting timestamp to ensure fresh data
+    const response = await fetch(`/api/reports?clinic_id=${encodeURIComponent(clinicId)}&t=${Date.now()}`, {
+      cache: "no-store",
+    });
     if (!response.ok) {
       console.error("Failed to fetch reports:", response.status, response.statusText);
       return [];
@@ -81,7 +84,10 @@ export async function getAllClinicsReports(clinicIds: string[]): Promise<Map<str
   clinicIds.forEach((id) => reportsMap.set(id, []));
 
   try {
-    const response = await fetch("/api/reports/summary");
+    // Add cache-busting timestamp to ensure fresh data
+    const response = await fetch(`/api/reports/summary?t=${Date.now()}`, {
+      cache: "no-store",
+    });
     if (!response.ok) {
       console.error(
         "Failed to fetch reports summary:",
