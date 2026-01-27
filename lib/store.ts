@@ -76,21 +76,33 @@ export async function getRecentReports(clinicId: string): Promise<Report[]> {
  */
 export async function getAllClinicsReports(clinicIds: string[]): Promise<Map<string, Report[]>> {
   const reportsMap = new Map<string, Report[]>();
-  
+
+  // Initialize map so callers always get an entry for each clinic ID
+  clinicIds.forEach((id) => reportsMap.set(id, []));
+
   try {
-    const promises = clinicIds.map(async (clinicId) => {
-      const reports = await getRecentReports(clinicId);
-      return { clinicId, reports };
-    });
-    
-    const results = await Promise.all(promises);
-    results.forEach(({ clinicId, reports }) => {
-      reportsMap.set(clinicId, reports);
+    const response = await fetch("/api/reports/summary");
+    if (!response.ok) {
+      console.error(
+        "Failed to fetch reports summary:",
+        response.status,
+        response.statusText
+      );
+      return reportsMap;
+    }
+
+    const data = await response.json();
+    const summaries: Record<string, BackendReport[]> = data.summaries || {};
+
+    Object.entries(summaries).forEach(([clinicId, backendReports]) => {
+      if (!clinicIds.includes(clinicId)) return;
+      const converted = backendReports.map(convertBackendReport);
+      reportsMap.set(clinicId, converted);
     });
   } catch (error) {
     console.error("Error fetching all clinics reports:", error);
   }
-  
+
   return reportsMap;
 }
 
