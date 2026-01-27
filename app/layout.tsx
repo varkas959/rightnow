@@ -1,5 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#2563eb",
+};
 
 export const metadata: Metadata = {
   title: "Check hospital crowds before you go | StatusNow",
@@ -13,7 +19,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <head>
+        {/* Preconnect to Supabase for faster API calls */}
+        <link rel="preconnect" href="https://wbvmakojxlilbbxgpecz.supabase.co" />
+        <link rel="dns-prefetch" href="https://wbvmakojxlilbbxgpecz.supabase.co" />
+      </head>
+      <body className="antialiased bg-white">{children}</body>
     </html>
   );
 }

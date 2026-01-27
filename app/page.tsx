@@ -1,12 +1,23 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { clinics } from "@/lib/data";
 import { getAllClinicsReports, getClinicsUpdatedInLastHour, formatTimeAgo, getConfidenceLevel } from "@/lib/store";
-import { calculateStatus, getStatusEmoji, getStatusText, getStatusColors, getCrowdStatusLabel, getWaitTimeRange } from "@/lib/status";
+import { calculateStatus, getStatusEmoji, getStatusColors, getCrowdStatusLabel, getWaitTimeRange } from "@/lib/status";
 import type { Report } from "@/lib/data";
 import type { StatusInfo } from "@/lib/status";
+
+// Skeleton component with fixed dimensions to prevent layout shifts
+const ClinicSkeleton = () => (
+  <div className="border border-gray-200 rounded-lg p-4" style={{ minHeight: "120px", borderLeftWidth: "4px", borderLeftColor: "#667085" }}>
+    <div className="animate-pulse">
+      <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+      <div className="h-3 bg-gray-200 rounded w-1/3 mb-3"></div>
+      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+    </div>
+  </div>
+);
 
 interface ClinicStatus {
   reports: Report[];
@@ -137,7 +148,10 @@ export default function HomePage() {
 
         {/* Clinic List */}
         <div className="space-y-3 mb-8">
-          {filteredClinics.map((clinic) => {
+          {isLoadingAll ? (
+            // Show skeletons during initial load to prevent layout shift
+            clinics.slice(0, 5).map((_, i) => <ClinicSkeleton key={i} />)
+          ) : filteredClinics.map((clinic) => {
             const clinicStatus = clinicStatuses.get(clinic.id);
             const reports = clinicStatus?.reports || [];
             const statusInfo = clinicStatus?.statusInfo || {
@@ -145,7 +159,6 @@ export default function HomePage() {
               description: "Status appears when people are visiting",
               confidence: "",
             };
-            const isLoading = clinicStatus?.isLoading ?? isLoadingAll;
 
             // Get last updated time
             const newestReport = reports.length > 0 
@@ -182,15 +195,10 @@ export default function HomePage() {
               <div
                 key={clinic.id}
                 className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden"
-                style={{ borderLeftWidth: "4px", borderLeftColor: borderColor }}
+                style={{ minHeight: "120px", borderLeftWidth: "4px", borderLeftColor: borderColor }}
                 onClick={() => handleClinicClick(clinic.slug)}
               >
-                {isLoading ? (
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                ) : hasEnoughData ? (
+                {hasEnoughData ? (
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
