@@ -20,6 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Favicon */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/favicon.svg" />
         {/* Preconnect to Supabase for faster API calls */}
         <link rel="preconnect" href="https://wbvmakojxlilbbxgpecz.supabase.co" />
         <link rel="dns-prefetch" href="https://wbvmakojxlilbbxgpecz.supabase.co" />

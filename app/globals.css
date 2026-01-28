@@ -2,3 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Critical inline styles to reduce layout shift */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Optimize animation performance */
+.animate-pulse {
+  will-change: opacity;
+}
+
+/* Prevent content shift during load */
+[data-loading] {
+  min-height: 120px;
+}
