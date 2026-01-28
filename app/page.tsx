@@ -108,9 +108,13 @@ export default function HomePage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="text-3xl font-bold text-blue-600 tracking-tight mb-2">
-            statusnow
-          </div>
+          <img 
+            src="/logo.svg" 
+            alt="StatusNow" 
+            className="h-10 mx-auto mb-3"
+            width="200"
+            height="50"
+          />
           <h1 className="text-xl font-semibold text-gray-900 mb-1">
             Check hospital crowds before you go
           </h1>
@@ -121,7 +125,7 @@ export default function HomePage() {
 
         {/* Statistics */}
         {clinicsUpdatedInLastHour > 0 && (
-          <div className="text-center mb-6 text-sm text-blue-600">
+          <div className="text-center mb-6 text-sm text-cyan-600">
             {clinicsUpdatedInLastHour} hospitals updated in last hour • {clinics.length} tracked
           </div>
         )}
@@ -133,7 +137,7 @@ export default function HomePage() {
             placeholder="Search hospital or area..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+            className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 text-base"
           />
         </div>
 
@@ -228,7 +232,7 @@ export default function HomePage() {
 
                       <div className="flex items-center gap-2 flex-wrap">
                         {confidenceInfo.isReliable ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-cyan-100 text-cyan-700 border border-cyan-200">
                             {confidenceInfo.level}
                           </span>
                         ) : (
@@ -300,7 +304,7 @@ export default function HomePage() {
                           e.stopPropagation();
                           handleClinicClick(clinic.slug);
                         }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+                        className="px-4 py-2 bg-cyan-600 text-white rounded-lg text-sm font-medium hover:bg-cyan-700"
                       >
                         Be the first to update
                       </button>
@@ -313,7 +317,7 @@ export default function HomePage() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+        <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <span className="text-2xl">📄</span>
             <h3 className="text-lg font-semibold text-gray-900">At a hospital right now?</h3>
@@ -323,7 +327,7 @@ export default function HomePage() {
           </p>
           <button
             onClick={handleQuickUpdate}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+            className="px-6 py-3 bg-cyan-600 text-white rounded-lg font-medium hover:bg-cyan-700"
           >
             Quick Update
           </button>

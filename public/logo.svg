@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 50">
+  <defs>
+    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D4FF"/>
+      <stop offset="100%" style="stop-color:#0099CC"/>
+    </linearGradient>
+  </defs>
+  <!-- Circle background -->
+  <circle cx="25" cy="25" r="22" fill="url(#logoGrad)"/>
+  <!-- Checkmark -->
+  <path d="M12 25 L20 33 L38 15" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Dots -->
+  <circle cx="35" cy="10" r="3" fill="#1a1a2e"/>
+  <circle cx="42" cy="16" r="2" fill="#1a1a2e"/>
+  <circle cx="45" cy="8" r="1.5" fill="#1a1a2e"/>
+  <!-- Text -->
+  <text x="55" y="33" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#1a3a4a">StatusNow</text>
+</svg>

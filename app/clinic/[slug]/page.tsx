@@ -60,7 +60,7 @@ export default function ClinicPage({
           </h1>
           <button
             onClick={() => router.push("/")}
-            className="text-blue-600 hover:underline"
+            className="text-cyan-600 hover:underline"
           >
             Go back to search
           </button>
@@ -183,7 +183,7 @@ export default function ClinicPage({
                 className={`w-full py-3 rounded-lg text-sm font-medium ${
                   userHasRecentReport
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-cyan-600 text-white hover:bg-cyan-700"
                 }`}
               >
                 Are you here now? Update status
